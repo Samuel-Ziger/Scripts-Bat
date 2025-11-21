@@ -1,102 +1,155 @@
 @echo off
-title AttackBox Safe Setup - Notebook 2
-color 0a
+title AttackBox Ultimate Setup
+chcp 65001 >nul
 
-:: -------------------------
-:: Verifica elevação (Admin)
-:: -------------------------
-openfiles >nul 2>&1
+:: ============================================
+:: VERIFICA PERMISSÃO DE ADMIN
+:: ============================================
+net session >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] Este script deve ser executado como Administrador.
-    echo [!] Clique com o botao direito -> Executar como administrador.
-    pause
-    exit /b 1
+    echo [!] Este script precisa ser executado como Administrador.
+    echo Reabrindo com privilegios elevados...
+    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    exit /b
 )
 
-echo ====================================================
-echo   AttackBox - Preparacao Segura (WSL2 + Tooling)
-echo ====================================================
+cls
+echo =====================================================
+echo        ATTACKBOX ULTIMATE - CONFIGURACAO COMPLETA
+echo =====================================================
 echo.
 
-:: -------------------------
-:: 1) Criar estrutura de pastas
-:: -------------------------
-echo [1/6] Criando pastas em C:\AttackBox...
-mkdir "C:\AttackBox" 2>nul
-mkdir "C:\AttackBox\Tools" 2>nul
-mkdir "C:\AttackBox\Payloads" 2>nul
-mkdir "C:\AttackBox\PostEx" 2>nul
-mkdir "C:\AttackBox\WSL" 2>nul
-mkdir "C:\AttackBox\Downloads" 2>nul
-echo OK.
+:: ============================================
+:: 1 - DESATIVAR RESTRICOES DO POWERSHELL
+:: ============================================
+echo [+] Liberando PowerShell temporariamente...
+powershell -Command "Set-ExecutionPolicy Unrestricted -Scope LocalMachine -Force"
+powershell -Command "Set-ExecutionPolicy Bypass -Scope Process -Force"
+
+:: ============================================
+:: 2 - DESATIVAR SMARTSCREEN
+:: ============================================
+echo [+] Desativando SmartScreen...
+reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f >nul
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\SmartScreen" /v ConfigureAppInstallControlEnabled /t REG_DWORD /d 0 /f >nul
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\SmartScreen" /v EnableSmartScreen /t REG_DWORD /d 0 /f >nul
+
+:: ============================================
+:: 3 - DESATIVAR WINDOWS DEFENDER COMPLETO
+:: ============================================
+echo [+] Desativando Windows Defender...
+powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true"
+powershell -Command "Set-MpPreference -DisableBehaviorMonitoring $true"
+powershell -Command "Set-MpPreference -DisableIOAVProtection $true"
+powershell -Command "Set-MpPreference -DisablePrivacyMode $true"
+powershell -Command "Set-MpPreference -SignatureDisableUpdateOnStartupWithoutEngine $true"
+powershell -Command "net stop WinDefend"
+
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f >nul
+
+:: ============================================
+:: 4 - INSTALAR CHOCOLATEY
+:: ============================================
+echo [+] Instalando Chocolatey...
+powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command ^
+"Set-ExecutionPolicy Bypass -Scope Process -Force; iwr https://community.chocolatey.org/install.ps1 -UseBasicParsing | iex"
+
+:: Atualiza o PATH após instalar o Choco
+refreshenv >nul 2>&1
+
+:: ============================================
+:: 5 - INSTALAR FERRAMENTAS DE PENTEST
+:: ============================================
 echo.
+echo [+] Instalando ferramentas essenciais...
 
-:: -------------------------
-:: 2) Habilitar WSL e VirtualMachinePlatform
-:: -------------------------
-echo [2/6] Habilitando WSL2 e VirtualMachinePlatform (pode pedir reinicio)...
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart >nul 2>&1
-dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart >nul 2>&1
-if %errorlevel% equ 0 (
-    echo Recursos WSL habilitados (será necessario reiniciar apos instalacao do Kali).
-) else (
-    echo [!] Erro ao habilitar recursos WSL (verifique privileges). Continuando...
-)
+choco install -y nmap
+choco install -y wireshark
+choco install -y metasploit
+choco install -y gobuster
+choco install -y curl
+choco install -y python
+choco install -y git
+choco install -y fzf
+choco install -y 7zip
+choco install -y vscode
+choco install -y neovim
+choco install -y rust
+choco install -y openssh
+
+:: Ferramentas extras
+choco install -y whois
+choco install -y wget
+choco install -y jq
+
+:: ============================================
+:: 6 - CONFIGURAR SSH FULL
+:: ============================================
+echo [+] Ativando servidor SSH...
+powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0" >nul 2>&1
+powershell -Command "Start-Service sshd" 
+powershell -Command "Set-Service -Name sshd -StartupType Automatic"
+
+:: ============================================
+:: 7 - ADICIONAR ALIASES E FERRAMENTAS NO POWERSHELL
+:: ============================================
+echo [+] Configurando ambiente PowerShell...
+
+(
+echo Set-Alias ll ls
+echo Set-Alias la "ls -Force"
+echo Set-Alias grep Select-String
+echo Set-Alias wget curl
+echo Set-Alias cat Get-Content
+echo Import-Module PSReadLine
+echo Set-PSReadLineOption -PredictionSource History
+) >> "%USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+
+:: ============================================
+:: 8 - OTIMIZAR PERFORMANCE DO WINDOWS
+:: ============================================
+echo [+] Ajustando desempenho para Máximo...
+
+:: Performance absoluta
+powershell -Command "powercfg -setactive SCHEME_MIN"
+
+:: Desliga hibernação
+powercfg -h off
+
+:: Desliga energia híbrida
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f >nul
+
+:: Remove limites de execução
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v FeatureSettingsOverride /t REG_DWORD /d 3 /f >nul
+
+:: ============================================
+:: 9 - REDUZIR SERVIÇOS DO WINDOWS (DEIXA MAIS LEVE)
+:: ============================================
+echo [+] Desativando serviços desnecessários...
+
+sc stop "DiagTrack" >nul
+sc config "DiagTrack" start=disabled
+
+sc stop "WSearch" >nul
+sc config "WSearch" start=disabled
+
+sc stop "RetailDemo" >nul
+sc config "RetailDemo" start=disabled
+
+:: ============================================
+:: 10 - LIMPEZA FINAL
+:: ============================================
+echo [+] Limpando arquivos temporários...
+del /s /q "%TEMP%\*" >nul 2>&1
+
+echo [+] Atualizando PATH e sessões...
+refreshenv >nul 2>&1
+
 echo.
-
-:: -------------------------
-:: 3) Instalar Chocolatey (se nao existir)
-:: -------------------------
-echo [3/6] Instalando Chocolatey (se necessario)...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) } else {Write-Output 'choco ja instalado'}"
-echo OK.
+echo =====================================================
+echo      ATTACKBOX INSTALADA E PRONTA PARA O USO
+echo =====================================================
+echo Reinicie o sistema para ativar todas as configuracoes.
 echo.
-
-:: -------------------------
-:: 4) Instalar pacotes basicos via choco
-:: -------------------------
-echo [4/6] Instalando pacotes basicos: git, python, dotnet-runtime, sysinternals, 7zip...
-choco feature enable -n allowGlobalConfirmation >nul 2>&1
-choco install -y git python dotnet-runtime --no-progress
-choco install -y sysinternals 7zip --no-progress
-echo OK.
-echo.
-
-:: -------------------------
-:: 5) Instalar WSL2 (Kali) via wsl.exe (opcao 1 - sem GUI)
-:: -------------------------
-echo [5/6] Instalando Kali (WSL2) - aguarde. Pode pedir credenciais ao abrir pela primeira vez.
-wsl --install -d kali-linux >nul 2>&1
-if %errorlevel% equ 0 (
-    echo Kali solicitado para instalacao via WSL2.
-    echo Obs: Abra o aplicativo 'Kali' no menu iniciar apos reboot para completar a criacao do usuario.
-) else (
-    echo [!] Falha automatica ao invocar wsl --install. Tente instalar manualmente via: wsl --install -d kali-linux
-)
-echo.
-
-:: -------------------------
-:: 6) Defender: adicionar exclusao apenas para C:\AttackBox (NAO desativa Defender)
-:: -------------------------
-echo [6/6] Protegendo rotina: adicionando exclusao no Windows Defender para C:\AttackBox...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "Try { Add-MpPreference -ExclusionPath 'C:\AttackBox' ; Write-Output 'Exclusao adicionada.' } Catch { Write-Output 'Falha ao adicionar exclusao no Defender: ' + $_.Exception.Message }"
-echo OK.
-echo.
-
-:: -------------------------
-:: Final: instrucoes e checklist
-:: -------------------------
-echo ====================================================
-echo Finalizado. Confira os proximos passos (LEIA):
-echo 1) Reinicie o sistema para finalizar a habilitacao do WSL/VirtualMachinePlatform.
-echo 2) Abra o 'Kali' pelo menu iniciar e complete a criacao de usuario no primeiro boot.
-echo 3) Dentro do WSL (Kali) rode: sudo apt update && sudo apt upgrade -y
-echo 4) Instale ferramentas dentro do WSL APENAS em rede isolada / laboratorio.
-echo 5) Crie uma snapshot/imagem do sistema (backup) antes de testar payloads reais.
-echo 6) Configure VLAN isolada / switch separado para o lab. NUNCA conecte essa maquina a redes de producao sem autorizacao.
-echo ====================================================
-
 pause
 exit /b 0
