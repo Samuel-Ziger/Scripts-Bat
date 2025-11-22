@@ -8,9 +8,9 @@ Script de automação completa para configuração de Kali Linux como plataforma
 
 **Estatísticas:**
 - **Script principal:** 1 (setup-kali.sh)
-- **Ferramentas incluídas:** 22 toolkits completos
+- **Ferramentas incluídas:** 23 toolkits completos
 - **Tamanho total:** ~310 MB
-- **Categorias:** C2, Recon, Web Exploitation, OSINT, Malware, Privacy
+- **Categorias:** C2, Recon, Web Exploitation, OSINT, Malware, Privacy, DDoS
 - **Linguagens:** Bash, Python, C/C++, Go
 
 **Destaques:**
@@ -40,6 +40,7 @@ Kali/
     ├── LeakLooker/            # Open database finder
     ├── Ares/                  # Python RAT framework
     ├── Crypter/               # Ransomware builder
+    ├── DDos/                  # Slowloris Pro DDoS tool
     ├── HTThief/               # HTTP/HTTPS traffic stealer
     ├── injector/              # DLL/Shellcode injector
     ├── buster/                # Advanced brute-forcer
@@ -543,6 +544,29 @@ python3 leaklooker.py
 
 ---
 
+### **💥 DDoS & Network Attacks**
+
+#### **DDos (Slowloris Pro)**
+- **Descrição:** Implementação avançada do ataque Slowloris em Python
+- **Recursos:**
+  - Multi-threaded para alta performance
+  - Suporte a proxies (HTTP, HTTPS, SOCKS4, SOCKS5)
+  - Randomização de headers keep-alive e user-agents
+  - Logging colorido em tempo real
+  - Customização de conexões e intervalos
+- **Técnica:** Slowloris mantém conexões HTTP abertas enviando headers parciais, esgotando recursos do servidor
+- **Uso:** Testes de stress de servidores (autorizado), research de DoS
+- **Linguagem:** Python 3.9+
+- **⚠️ USO EDUCACIONAL/AUTORIZADO APENAS!**
+
+```bash
+cd Ferramentas/DDos
+pip install -r requirements.txt
+python main.py --target http://target.com --connections 500
+```
+
+---
+
 ### **💀 Malware & Cryptography**
 
 #### **Crypter**
@@ -598,8 +622,9 @@ cd Ferramentas/xmr-stak
 | **Credentials** | 2 | pwndb, LeakLooker |
 | **Web Exploitation** | 7 | buster, injector, HTThief, CSRF-to-RCE, Moodle XSS, WP exploit, Chrome extensions |
 | **Malware/Crypto** | 2 | Crypter, xmr-stak |
+| **DDoS** | 1 | Slowloris Pro |
 | **Privacy** | 4 | Anon-Check, Proton-VPN-Helper, VPN-Chain, Give-me-privacy-Google |
-| **TOTAL** | **22 toolkits** | **~310 MB** |
+| **TOTAL** | **23 toolkits** | **~310 MB** |
 
 ---
 

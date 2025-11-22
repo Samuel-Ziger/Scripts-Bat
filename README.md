@@ -10,7 +10,7 @@ Repositório de scripts de automação para configuração rápida de ambientes 
 - **Total de arquivos:** 6,800+
 - **Tamanho total:** ~310 MB
 - **Scripts principais:** 12 (Windows) + 1 (Kali)
-- **Ferramentas Kali:** 22 toolkits completos
+- **Ferramentas Kali:** 23 toolkits completos
 - **Linguagens:** Batch, PowerShell, Bash, Python
 - **Última atualização:** Novembro 2025
 
@@ -50,10 +50,11 @@ Scripts-Bat/
 │       ├── LeakLooker/      # Open database finder
 │       ├── Ares/            # Python RAT framework
 │       ├── Crypter/         # Ransomware builder
+│       ├── DDos/            # Slowloris Pro DDoS tool
 │       ├── HTThief/         # HTTP/HTTPS traffic stealer
 │       ├── injector/        # DLL/Shellcode injector
 │       ├── buster/          # Brute-force tool
-│       └── ...              # +10 ferramentas adicionais
+│       └── ...              # +9 ferramentas adicionais
 │
 └── Windows/                 # Scripts para Windows
     ├── atack2.0-optimized.bat  # Setup Notebook 2 (AD/Lateral Movement) ⭐ NOVO!
@@ -227,6 +228,9 @@ Verifica:
 #### **Malware & Ransomware**
 - **Crypter** - Ransomware builder (educacional)
 - **xmr-stak** - Cryptocurrency miner (Monero/RagerX)
+
+#### **DDoS & Network Attacks**
+- **DDos (Slowloris Pro)** - Advanced Slowloris DDoS attack (HTTP/HTTPS, proxy support)
 
 #### **Privacy & Anonymity**
 - **Anon-Check** - Anonymity checker
